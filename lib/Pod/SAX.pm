@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.3 2002/05/19 16:49:32 matt Exp $
+# $Id: SAX.pm,v 1.5 2002/06/12 22:59:41 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -25,7 +25,10 @@ sub _parse_characterstream {
 sub _parse_string {
     my ($self, $str) = @_;
     my $tree = Pod::Tree->new();
-    $tree->load_string($str);
+    $str =~ s/\r//g;
+    # NB: \n\n is a hack due to bugs in Pod::Tree
+    $tree->load_string("\n\n$str");
+    $self->{ParserOptions}{_stringmode} = 1;
     $self->parse_tree($tree->get_root);
 }
 
@@ -59,7 +62,15 @@ sub process_node {
     my $type = $node->get_type;
     if ($type eq 'root') {
         $self->start_element(_element('pod'));
-        $self->process_node($_) for @{$node->get_children};
+        if ($self->{ParserOptions}{_stringmode}) {
+            # Work around horrible Pod::Tree bug with parsing strings!
+            my @nodes = @{$node->get_children};
+            shift @nodes;
+            $self->process_node($_) for @nodes;
+        }
+        else {
+            $self->process_node($_) for @{$node->get_children};
+        }
         $self->end_element(_element('pod', 1));
     }
     elsif ($type eq 'code') {
