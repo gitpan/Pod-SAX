@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.17 2002/06/24 12:31:19 matt Exp $
+# $Id: SAX.pm,v 1.19 2002/08/30 15:15:22 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.10';
+$VERSION = '0.11';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -177,6 +177,13 @@ sub open_list {
 
 sub close_list {
     my $self = shift;
+    
+    if ($self->{in_item}) {
+	$self->parent->end_element(_element('listitem', 1));
+	$self->parent->characters({Data => "\n"});
+	$self->{in_item}--;
+    }
+    
     my $list_type = $self->{list_type}[$self->{in_list}];
     $self->{list_type}[$self->{in_list}] = undef;
     $self->parent->characters({Data => (" " x $self->{in_list})});
@@ -230,20 +237,35 @@ sub command {
 	if ($self->{open_lists}) {
 	    # determine list type, and open list tag
 	    my $list_type = 'itemizedlist';
-	    $paragraph =~ s|^\s* \*  \s+||x and $list_type = 'itemizedlist';
-	    $paragraph =~ s|^\s* \d+\.? \s+||x and $list_type = 'orderedlist';
+	    $paragraph =~ s|^\s* \*  \s*||x and $list_type = 'itemizedlist';
+	    $paragraph =~ s|^\s* \d+\.? \s*||x and $list_type = 'orderedlist';
 	    $self->open_list($list_type);
 	}
 	else {
 	    if ($self->{list_type}[$self->{in_list}] eq 'itemizedlist') {
-		$paragraph =~ s|^\s* \*  \s+||x;
+		$paragraph =~ s|^\s* \*  \s*||x;
 	    }
 	    elsif ($self->{list_type}[$self->{in_list}] eq 'orderedlist') {
-		$paragraph =~ s|^\s* \d+\.? \s+||x;
+		$paragraph =~ s|^\s* \d+\.? \s*||x;
+	    }
+	    
+	    if ($self->{in_item}) {
+		# close the last one
+		$self->parent->end_element(_element('listitem', 1));
+		$self->parent->characters({Data => "\n"});
+		$self->{in_item}--;
 	    }
 	}
+	
 	$self->parent->characters({Data => " ".(" " x $self->{in_list})});
-	$command = 'listitem'; # prefer this ;-)
+	
+	$self->parent->start_element(_element('listitem'));
+	if ($paragraph) {
+	    $self->parse_text({ -expand_ptree => 'expand_ptree' }, $paragraph, $line_num);
+	    $self->parent->characters({Data => "\n"});
+	}
+	$self->{in_item}++;
+	return;
     }
     elsif ($command eq 'begin' || $command eq 'for') {
 	if ($self->{open_lists}) {
@@ -432,15 +454,19 @@ sub SplitTarget
 
 sub expand_seq {
     my ($self, $sequence) = @_;
+    
     my $name = $sequence->cmd_name;
     my ($filename, $line_number) = $sequence->file_line();
     $self->{line_number} = $line_number;
+    
+    # warn("seq $name\n");
     
     if ($name eq 'L') {
 	# link
 	
 	my $link = $sequence->raw_text;
 	$link =~ s/^L<(.*)>$/$1/;
+        $link =~ s/^<+\s(.*)\s>+$/$1/;
 	my ($text, $inferred, $name, $section, $type) = parselink($link);
 	$text = '' unless defined $text;
 	$inferred = '' unless defined $inferred;
@@ -478,8 +504,9 @@ sub expand_seq {
 	else {
 	    $char = $HTML_Escapes{$text};
 	}
+        # warn("doing E<$text> = $char\n");
 	    
-	$self->parent->characters({Data => $HTML_Escapes{$text}});
+	$self->parent->characters({Data => $char});
     }
     elsif ($name eq 'S') {
 	my $spaces = join('', $sequence->parse_tree->children);

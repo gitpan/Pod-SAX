@@ -48,4 +48,8 @@ More
 
 =back
 
+A really complex link example from TorgoX:
+
+L<< SWITCH B<<< E<115>tatements >>>|perlsyn/Basic I<<<< BLOCKs >>>> and Switch StatementE<115> >>
+
 =cut

@@ -34,6 +34,14 @@ Some =item things to test
 
 =item * second bullet
 
+=item *
+
+Bullet on its own
+
+=item *
+
+And one more
+
 =back
 
 =head2 Numbered Lists
