@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.19 2002/08/30 15:15:22 matt Exp $
+# $Id: SAX.pm,v 1.22 2003/01/04 00:34:27 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.11';
+$VERSION = '0.13';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -467,7 +467,7 @@ sub expand_seq {
 	my $link = $sequence->raw_text;
 	$link =~ s/^L<(.*)>$/$1/;
         $link =~ s/^<+\s(.*)\s>+$/$1/;
-	my ($text, $inferred, $name, $section, $type) = parselink($link);
+	my ($text, $inferred, $name, $section, $type) = $self->parselink($link);
 	$text = '' unless defined $text;
 	$inferred = '' unless defined $inferred;
 	$name = '' unless defined $name;
@@ -593,19 +593,39 @@ sub _infer_text {
 # the possibly inferred link text, the name or URL, the section, and the type
 # of link (pod, man, or url).
 sub parselink {
-    my ($link) = @_;
+    my ($self, $link) = @_;
     $link =~ s/\s+/ /g;
+    # my $real_text = $self->parse_text({ -expand_ptree => 'expand_link' }, $link, 0);
     if ($link =~ /\A\w+:[^:\s]\S*\Z/) {
 	return (undef, $link, $link, undef, 'url');
-    } else {
+    }
+    else {
 	my $text;
 	if ($link =~ /\|/) {
 	    ($text, $link) = split (/\|/, $link, 2);
 	}
+        if ($link =~ /\A\w+:[^:\s]\S*\Z/) {
+            return (undef, $text, $link, $text, 'url');
+        }
 	my ($name, $section) = _parse_section ($link);
 	my $inferred = $text || _infer_text ($name, $section);
 	my $type = ($name && $name =~ /\(\S*\)/) ? 'man' : 'pod';
 	return ($text, $inferred, $name, $section, $type);
+    }
+}
+
+# Unused right now...
+sub expand_link {
+    my ($self, $ptree) = @_;
+    my $text = '';
+    foreach my $node ($ptree->children) {
+	# warn("Expand_ptree($node)\n");
+	if (ref($node)) {
+	    $self->expand_seq($node);
+	}
+	else {
+	    $self->parent->characters({Data => $node});
+	}
     }
 }
 

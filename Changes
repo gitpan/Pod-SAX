@@ -1,5 +1,11 @@
 Pod::SAX Changes
 
+0.13
+    - Fixed some list issues
+
+0.12
+    - Fixed L<> parsing to do links with text
+
 0.11
     - Fixed L<> parsing based on very strange TorgoX journal entry ;-)
     - Some =item fixes

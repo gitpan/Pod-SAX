@@ -1,5 +1,5 @@
 use Test;
-BEGIN { plan tests => 5 }
+BEGIN { plan tests => 6 }
 use Pod::SAX;
 use XML::SAX::Writer;
 
@@ -17,6 +17,7 @@ print "$output\n";
 ok($output, qr/<pod>.*<\/pod>/s, "Matches basic pod outline");
 ok($output, qr/<link/, "Contains a link");
 ok($output, qr/<xlink\s+href=['"]http:\/\/axkit.org\/['"]/, "URL link");
+ok($output, qr/<xlink\s+href=['"]http:\/\/axkit.org\/['"]>with text/, "URL link");
 
 __DATA__
 
@@ -33,6 +34,8 @@ Here's a L<page2/mysection>
 Here's a L<Some Text|page3/mysection>
 
 And a URL L<http://axkit.org/>
+
+A URL L<with text|http://axkit.org/>
 
 A link with text L<Some Text|Link>
 
@@ -51,5 +54,9 @@ More
 A really complex link example from TorgoX:
 
 L<< SWITCH B<<< E<115>tatements >>>|perlsyn/Basic I<<<< BLOCKs >>>> and Switch StatementE<115> >>
+
+And another from the axkit wiki:
+
+  Can I L<< Trying a link with a F<file/reference> >> link to that?
 
 =cut
