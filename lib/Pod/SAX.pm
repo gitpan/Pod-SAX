@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.14 2002/06/14 16:53:06 matt Exp $
+# $Id: SAX.pm,v 1.15 2002/06/16 12:57:06 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.07';
+$VERSION = '0.08';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -138,7 +138,7 @@ sub begin_pod {
          XML::SAX::DocumentLocator->new(
             sub { "" },
             sub { $sysid },
-            sub { 0 },
+            sub { $self->{line_number} },
             sub { 0 },
         ),
     );
@@ -172,6 +172,7 @@ sub close_list {
 sub command { 
     my ($self, $command, $paragraph, $line_num) = @_;
     ## Interpret the command and its text; sample actions might be:
+    $self->{line_number} = $line_num;
     $paragraph =~ s/\s*$//;
     $paragraph =~ s/^\s*//;
     
@@ -189,7 +190,12 @@ sub command {
 	return;
     }
     elsif ($command eq 'back') {
-	$self->close_list();
+	if ($self->{in_list}) {
+	    $self->close_list();
+	}
+	else {
+	    throw XML::SAX::Exception::Parse ( Message => "=back without =over" );
+	}
 	return;
     }
     elsif ($command eq 'item') {
@@ -237,10 +243,17 @@ sub command {
 	$self->parent->start_element($el);
 	$self->parent->characters({Data => $paragraph});
 	$self->parent->end_element(_element('markup', 1)) if $command eq 'for';
+	$self->{in_begin_section} = 1 if $command eq 'begin';
 	return;
     }
     elsif ($command eq 'end') {
-	$self->parent->end_element(_element('markup'));
+	if ($self->{in_begin_section}) {
+	    $self->parent->end_element(_element('markup'));
+	    $self->{in_begin_section} = 0;
+	}
+	else {
+	    throw XML::SAX::Exception::Parse ( Message => "=end without =begin" );
+	}
 	return;
     }
     
@@ -252,6 +265,7 @@ sub command {
 
 sub verbatim { 
     my ($self, $paragraph, $line_num) = @_;
+    $self->{line_number} = $line_num;
     
     my $text = $paragraph;
     $text =~ s/\n\z//;
@@ -295,6 +309,7 @@ sub verbatim {
 
 sub textblock { 
     my ($self, $paragraph, $line_num) = @_;
+    $self->{line_number} = $line_num;
 
     if ($self->{open_lists}) {
 	# non =item command while in =over section - must be indented
@@ -376,6 +391,7 @@ sub expand_seq {
     my ($self, $sequence) = @_;
     my $name = $sequence->cmd_name;
     my ($filename, $line_number) = $sequence->file_line();
+    $self->{line_number} = $line_number;
     
     if ($name eq 'L') {
 	# link
