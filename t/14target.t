@@ -32,6 +32,8 @@ Foo here's a L<page1>
 
 Here's a L<page2/mysection>
 
+Here's a L<Some Text|page3/mysection>
+
 And a URL L<http://axkit.org/>
 
 =head2 Sub Title

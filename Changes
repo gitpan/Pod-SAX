@@ -1,5 +1,8 @@
 Pod::SAX Changes
 
+0.03
+    - Complete re-write to use Pod::Parser
+
 0.02
     - Work around bug in Pod::Tree when parsing strings
 

@@ -32,4 +32,12 @@ Foo
 
 More
 
+=head1 Another top title
+
+=head2 With a subtitle
+
+=head3 and a head3 (do we support head3?)
+
+=head4 what about head4?
+
 =cut
