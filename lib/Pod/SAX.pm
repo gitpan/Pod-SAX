@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.15 2002/06/16 12:57:06 matt Exp $
+# $Id: SAX.pm,v 1.17 2002/06/24 12:31:19 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.08';
+$VERSION = '0.10';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -132,9 +132,9 @@ sub parent {
 }
 
 sub begin_pod {
-    my $self = shift->parent;
-    my $sysid = $self->{ParserOptions}->{Source}{SystemId};
-    $self->set_document_locator(
+    my $self = shift;
+    my $sysid = $self->parent->{ParserOptions}->{Source}{SystemId};
+    $self->parent->set_document_locator(
          XML::SAX::DocumentLocator->new(
             sub { "" },
             sub { $sysid },
@@ -142,20 +142,37 @@ sub begin_pod {
             sub { 0 },
         ),
     );
-    $self->start_document({});
-    $self->start_element(_element('pod'));
-    $self->characters({Data => "\n"});
-    $self->comment({Data => " Pod::SAX v$Pod::SAX::VERSION, using POD::Parser v$Pod::Parser::VERSION "});
-    $self->characters({Data => "\n"});
+    $self->parent->start_document({});
+    $self->parent->start_element(_element('pod'));
+    $self->parent->characters({Data => "\n"});
+    $self->parent->comment({Data => " Pod::SAX v$Pod::SAX::VERSION, using POD::Parser v$Pod::Parser::VERSION "});
+    $self->parent->characters({Data => "\n"});
 }
 
 sub end_pod {
     my $self = shift;
+    if ($self->{in_verbatim}) {
+	$self->parent->end_element(_element('verbatim', 1));
+	$self->parent->characters({Data => "\n"});
+    }
     while ($self->{in_list}) {
 	$self->close_list();
     }
     $self->parent->end_element(_element('pod', 1));
     $self->parent->end_document({});
+}
+
+sub open_list {
+    my $self = shift;
+    my ($list_type) = @_;
+    $self->{list_type}[$self->{in_list}] = $list_type;
+    $self->parent->characters({Data => (" " x $self->{in_list})});
+    my $el = _element($list_type);
+    _add_attrib($el, indent_width => $self->{indent});
+    $self->parent->start_element($el);
+    $self->parent->characters({Data => "\n"});
+    $self->{open_lists}--;
+    return;
 }
 
 sub close_list {
@@ -194,23 +211,28 @@ sub command {
 	    $self->close_list();
 	}
 	else {
-	    throw XML::SAX::Exception::Parse ( Message => "=back without =over" );
+	    throw XML::SAX::Exception::Parse ( 
+					      Message => "=back without =over",
+					      LineNumber => $self->{line_number},
+					      ColumnNumber => 0,
+					      );
 	}
 	return;
     }
     elsif ($command eq 'item') {
+	if (!$self->{in_list}) {
+	    throw XML::SAX::Exception::Parse (
+					      Message => "=item without =over",
+					      LineNumber => $self->{line_number},
+					      ColumnNumber => 0,
+					      );
+	}
 	if ($self->{open_lists}) {
 	    # determine list type, and open list tag
 	    my $list_type = 'itemizedlist';
 	    $paragraph =~ s|^\s* \*  \s+||x and $list_type = 'itemizedlist';
 	    $paragraph =~ s|^\s* \d+\.? \s+||x and $list_type = 'orderedlist';
-	    $self->{list_type}[$self->{in_list}] = $list_type;
-	    $self->parent->characters({Data => (" " x $self->{in_list})});
-	    my $el = _element($list_type);
-	    _add_attrib($el, indent_width => $self->{indent});
-	    $self->parent->start_element($el);
-	    $self->parent->characters({Data => "\n"});
-	    $self->{open_lists}--;
+	    $self->open_list($list_type);
 	}
 	else {
 	    if ($self->{list_type}[$self->{in_list}] eq 'itemizedlist') {
@@ -223,37 +245,63 @@ sub command {
 	$self->parent->characters({Data => " ".(" " x $self->{in_list})});
 	$command = 'listitem'; # prefer this ;-)
     }
-    elsif ($self->{open_lists}) {
-	# non =item command while in =over section - must be indented
-	my $list_type = 'indent';
-	$self->{list_type}[$self->{in_list}] = $list_type;
-	$self->parent->characters({Data => (" " x $self->{in_list})});
-	my $el = _element($list_type);
-	_add_attrib($el, indent_width => $self->{indent});
-	$self->parent->start_element($el);
-	$self->parent->characters({Data => "\n"});
-	$self->{open_lists}--;
-    }
-    
-    if ($command eq 'begin' || $command eq 'for') {
+    elsif ($command eq 'begin' || $command eq 'for') {
+	if ($self->{open_lists}) {
+	    # non =item command while in =over section - must be indented
+	    my $list_type = 'indent';
+	    $self->open_list($list_type);
+	}
+	
 	my $el = _element('markup');
 	$paragraph =~ s/^(\S*)\s*//;
 	my $type = $1;
+	my $process_paragraphs = 0;
+	if ($type =~ /^:(.*)$/) {
+	    $process_paragraphs = 1;
+	    $type = $1;
+	}
 	_add_attrib($el, type => $type);
+	_add_attrib($el, ordinary_paragraph => $process_paragraphs);
 	$self->parent->start_element($el);
-	$self->parent->characters({Data => $paragraph});
+	if ($process_paragraphs) {
+	    $self->parse_text({ -expand_ptree => 'expand_ptree' }, $paragraph, $line_num);
+	}
+	else {
+	    $self->parent->characters({Data => $paragraph});
+	}
 	$self->parent->end_element(_element('markup', 1)) if $command eq 'for';
 	$self->{in_begin_section} = 1 if $command eq 'begin';
 	return;
     }
     elsif ($command eq 'end') {
+	if ($self->{open_lists}) {
+	    # non =item command while in =over section - must be indented
+	    my $list_type = 'indent';
+	    $self->open_list($list_type);
+	}
+	
 	if ($self->{in_begin_section}) {
 	    $self->parent->end_element(_element('markup'));
 	    $self->{in_begin_section} = 0;
 	}
 	else {
-	    throw XML::SAX::Exception::Parse ( Message => "=end without =begin" );
+	    throw XML::SAX::Exception::Parse (
+					      Message => "=end without =begin",
+					      LineNumber => $self->{line_number},
+					      ColumnNumber => 0,
+					      );
 	}
+	return;
+    }
+    elsif ($self->{in_list}) {
+	throw XML::SAX::Exception::Parse (
+					  Message => "=$command inside =over/=end block is not allowed",
+					  LineNumber => $self->{line_number},
+					  ColumnNumber => 0,
+					  );
+    }
+    
+    if ($command eq 'pod') {
 	return;
     }
     
@@ -272,15 +320,10 @@ sub verbatim {
     
     if ($self->{open_lists}) {
 	# non =item command while in =over section - must be indented
-	my $list_type = 'indent';
-	$self->{list_type}[$self->{in_list}] = $list_type;
-	$self->parent->characters({Data => (" " x $self->{in_list})});
-	my $el = _element($list_type);
-	_add_attrib($el, indent_width => $self->{indent});
-	$self->parent->start_element($el);
-	$self->parent->characters({Data => "\n"});
-	$self->{open_lists}--;
+	$self->open_list('indent');
     }
+    
+    return unless $paragraph =~ /\S/;
     
     my $last_verbatim = 0;
     if ($text =~ /\n\z/) {
@@ -576,9 +619,7 @@ Matt Sergeant, matt@sergeant.org. Copyright AxKit.com Ltd 2002
 
 =head1 BUGS
 
-Most bugs are in Pod::Tree which this module depends on. For example, 
-"require 5.6.0" is a bug in my opinion. Also, Pod::Tree seems to do different
-things depending on if you're parsing a string or a filehandle. Oddness.
+No known bugs at this time.
 
 =head1 LICENSE
 

@@ -1,5 +1,13 @@
 Pod::SAX Changes
 
+0.10
+    - Added pod2axpoint.xsl for creating AxPoint slides
+    - Added more tests
+    - Fixed bug with non-ending verbatim section
+
+0.09
+    - Line numbers weren't showing up. Fixed
+
 0.08
     - Added line numbers to error messages (via DocumentLocator)
     - Better tag nesting error checking
