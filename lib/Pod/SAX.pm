@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.22 2003/01/04 00:34:27 matt Exp $
+# $Id: SAX.pm,v 1.25 2003/01/29 18:01:08 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.13';
+$VERSION = '0.14';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -50,71 +50,71 @@ use vars qw(@ISA %HTML_Escapes);
     'sol'       =>      '/',    #   slash
     'verbar'    =>      '|',    #   vertical bar
 
-    "Aacute"    =>      "\xC1", #   capital A, acute accent
-    "aacute"    =>      "\xE1", #   small a, acute accent
-    "Acirc"     =>      "\xC2", #   capital A, circumflex accent
-    "acirc"     =>      "\xE2", #   small a, circumflex accent
-    "AElig"     =>      "\xC6", #   capital AE diphthong (ligature)
-    "aelig"     =>      "\xE6", #   small ae diphthong (ligature)
-    "Agrave"    =>      "\xC0", #   capital A, grave accent
-    "agrave"    =>      "\xE0", #   small a, grave accent
-    "Aring"     =>      "\xC5", #   capital A, ring
-    "aring"     =>      "\xE5", #   small a, ring
-    "Atilde"    =>      "\xC3", #   capital A, tilde
-    "atilde"    =>      "\xE3", #   small a, tilde
-    "Auml"      =>      "\xC4", #   capital A, dieresis or umlaut mark
-    "auml"      =>      "\xE4", #   small a, dieresis or umlaut mark
-    "Ccedil"    =>      "\xC7", #   capital C, cedilla
-    "ccedil"    =>      "\xE7", #   small c, cedilla
-    "Eacute"    =>      "\xC9", #   capital E, acute accent
-    "eacute"    =>      "\xE9", #   small e, acute accent
-    "Ecirc"     =>      "\xCA", #   capital E, circumflex accent
-    "ecirc"     =>      "\xEA", #   small e, circumflex accent
-    "Egrave"    =>      "\xC8", #   capital E, grave accent
-    "egrave"    =>      "\xE8", #   small e, grave accent
-    "ETH"       =>      "\xD0", #   capital Eth, Icelandic
-    "eth"       =>      "\xF0", #   small eth, Icelandic
-    "Euml"      =>      "\xCB", #   capital E, dieresis or umlaut mark
-    "euml"      =>      "\xEB", #   small e, dieresis or umlaut mark
-    "Iacute"    =>      "\xCD", #   capital I, acute accent
-    "iacute"    =>      "\xED", #   small i, acute accent
-    "Icirc"     =>      "\xCE", #   capital I, circumflex accent
-    "icirc"     =>      "\xEE", #   small i, circumflex accent
-    "Igrave"    =>      "\xCD", #   capital I, grave accent
-    "igrave"    =>      "\xED", #   small i, grave accent
-    "Iuml"      =>      "\xCF", #   capital I, dieresis or umlaut mark
-    "iuml"      =>      "\xEF", #   small i, dieresis or umlaut mark
-    "Ntilde"    =>      "\xD1",         #   capital N, tilde
-    "ntilde"    =>      "\xF1",         #   small n, tilde
-    "Oacute"    =>      "\xD3", #   capital O, acute accent
-    "oacute"    =>      "\xF3", #   small o, acute accent
-    "Ocirc"     =>      "\xD4", #   capital O, circumflex accent
-    "ocirc"     =>      "\xF4", #   small o, circumflex accent
-    "Ograve"    =>      "\xD2", #   capital O, grave accent
-    "ograve"    =>      "\xF2", #   small o, grave accent
-    "Oslash"    =>      "\xD8", #   capital O, slash
-    "oslash"    =>      "\xF8", #   small o, slash
-    "Otilde"    =>      "\xD5", #   capital O, tilde
-    "otilde"    =>      "\xF5", #   small o, tilde
-    "Ouml"      =>      "\xD6", #   capital O, dieresis or umlaut mark
-    "ouml"      =>      "\xF6", #   small o, dieresis or umlaut mark
-    "szlig"     =>      "\xDF",         #   small sharp s, German (sz ligature)
-    "THORN"     =>      "\xDE", #   capital THORN, Icelandic
-    "thorn"     =>      "\xFE", #   small thorn, Icelandic
-    "Uacute"    =>      "\xDA", #   capital U, acute accent
-    "uacute"    =>      "\xFA", #   small u, acute accent
-    "Ucirc"     =>      "\xDB", #   capital U, circumflex accent
-    "ucirc"     =>      "\xFB", #   small u, circumflex accent
-    "Ugrave"    =>      "\xD9", #   capital U, grave accent
-    "ugrave"    =>      "\xF9", #   small u, grave accent
-    "Uuml"      =>      "\xDC", #   capital U, dieresis or umlaut mark
-    "uuml"      =>      "\xFC", #   small u, dieresis or umlaut mark
-    "Yacute"    =>      "\xDD", #   capital Y, acute accent
-    "yacute"    =>      "\xFD", #   small y, acute accent
-    "yuml"      =>      "\xFF", #   small y, dieresis or umlaut mark
+    "Aacute"    =>      "\xC3\x81", #   capital A, acute accent
+    "aacute"    =>      "\xC3\xA1", #   small a, acute accent
+    "Acirc"     =>      "\xC3\x82", #   capital A, circumflex accent
+    "acirc"     =>      "\xC3\xA2", #   small a, circumflex accent
+    "AElig"     =>      "\xC3\x86", #   capital AE diphthong (ligature)
+    "aelig"     =>      "\xC3\xA6", #   small ae diphthong (ligature)
+    "Agrave"    =>      "\xC3\x80", #   capital A, grave accent
+    "agrave"    =>      "\xC3\xA0", #   small a, grave accent
+    "Aring"     =>      "\xC3\x85", #   capital A, ring
+    "aring"     =>      "\xC3\xA5", #   small a, ring
+    "Atilde"    =>      "\xC3\x83", #   capital A, tilde
+    "atilde"    =>      "\xC3\xA3", #   small a, tilde
+    "Auml"      =>      "\xC3\x84", #   capital A, dieresis or umlaut mark
+    "auml"      =>      "\xC3\xA4", #   small a, dieresis or umlaut mark
+    "Ccedil"    =>      "\xC3\x87", #   capital C, cedilla
+    "ccedil"    =>      "\xC3\xA", #   small c, cedilla
+    "Eacute"    =>      "\xC3\x89", #   capital E, acute accent
+    "eacute"    =>      "\xC3\xA9", #   small e, acute accent
+    "Ecirc"     =>      "\xC3\x8A", #   capital E, circumflex accent
+    "ecirc"     =>      "\xC3\xAA", #   small e, circumflex accent
+    "Egrave"    =>      "\xC3\x88", #   capital E, grave accent
+    "egrave"    =>      "\xC3\xA8", #   small e, grave accent
+    "ETH"       =>      "\xC3\x90", #   capital Eth, Icelandic
+    "eth"       =>      "\xC3\xB0", #   small eth, Icelandic
+    "Euml"      =>      "\xC3\x8B", #   capital E, dieresis or umlaut mark
+    "euml"      =>      "\xC3\xAB", #   small e, dieresis or umlaut mark
+    "Iacute"    =>      "\xC3\x8D", #   capital I, acute accent
+    "iacute"    =>      "\xC3\xAD", #   small i, acute accent
+    "Icirc"     =>      "\xC3\x8E", #   capital I, circumflex accent
+    "icirc"     =>      "\xC3\xAE", #   small i, circumflex accent
+    "Igrave"    =>      "\xC3\x8D", #   capital I, grave accent
+    "igrave"    =>      "\xC3\xAD", #   small i, grave accent
+    "Iuml"      =>      "\xC3\x8F", #   capital I, dieresis or umlaut mark
+    "iuml"      =>      "\xC3\xAF", #   small i, dieresis or umlaut mark
+    "Ntilde"    =>      "\xC3\x91",         #   capital N, tilde
+    "ntilde"    =>      "\xC3\xB1",         #   small n, tilde
+    "Oacute"    =>      "\xC3\x93", #   capital O, acute accent
+    "oacute"    =>      "\xC3\xB3", #   small o, acute accent
+    "Ocirc"     =>      "\xC3\x94", #   capital O, circumflex accent
+    "ocirc"     =>      "\xC3\xB4", #   small o, circumflex accent
+    "Ograve"    =>      "\xC3\x92", #   capital O, grave accent
+    "ograve"    =>      "\xC3\xB2", #   small o, grave accent
+    "Oslash"    =>      "\xC3\x98", #   capital O, slash
+    "oslash"    =>      "\xC3\xB8", #   small o, slash
+    "Otilde"    =>      "\xC3\x95", #   capital O, tilde
+    "otilde"    =>      "\xC3\xB5", #   small o, tilde
+    "Ouml"      =>      "\xC3\x96", #   capital O, dieresis or umlaut mark
+    "ouml"      =>      "\xC3\xB6", #   small o, dieresis or umlaut mark
+    "szlig"     =>      "\xC3\x9F",         #   small sharp s, German (sz ligature)
+    "THORN"     =>      "\xC3\x9E", #   capital THORN, Icelandic
+    "thorn"     =>      "\xC3\xBE", #   small thorn, Icelandic
+    "Uacute"    =>      "\xC3\x9A", #   capital U, acute accent
+    "uacute"    =>      "\xC3\xBA", #   small u, acute accent
+    "Ucirc"     =>      "\xC3\x9B", #   capital U, circumflex accent
+    "ucirc"     =>      "\xC3\xBB", #   small u, circumflex accent
+    "Ugrave"    =>      "\xC3\x99", #   capital U, grave accent
+    "ugrave"    =>      "\xC3\xB9", #   small u, grave accent
+    "Uuml"      =>      "\xC3\x9C", #   capital U, dieresis or umlaut mark
+    "uuml"      =>      "\xC3\xBC", #   small u, dieresis or umlaut mark
+    "Yacute"    =>      "\xC3\x9D", #   capital Y, acute accent
+    "yacute"    =>      "\xC3\xBD", #   small y, acute accent
+    "yuml"      =>      "\xC3\xBF", #   small y, dieresis or umlaut mark
 
-    "lchevron"  =>      "\xAB", #   left chevron (double less than)
-    "rchevron"  =>      "\xBB", #   right chevron (double greater than)
+    "lchevron"  =>      "\xC2\xAB", #   left chevron (double less than)
+    "rchevron"  =>      "\xC2\xBB", #   right chevron (double greater than)
 );
 
 sub sex {
@@ -356,11 +356,18 @@ sub verbatim {
     $self->parent->characters({Data => "\n\n"}) if $self->{in_verbatim};
     $self->{in_verbatim} = 1;
     
-    if ($paragraph =~ s/^(\s*)//) {
-        my $indent = $1;
+    if ($paragraph =~ /^(\s+)/) {
+        # get all indents
+        my @indents = ($paragraph =~ m/^([ \t]+)/mg);
+        # and take the shortest one
+        my $indent = (
+          sort { length($a) <=> length($b) } 
+          map { s/\t/        /g; $_ } # expand tabs
+          @indents)[0];
 
         $paragraph =~ s/\s*$//;
         return unless length $paragraph;
+        # warn("stripping: '$indent'\n");
         $paragraph =~ s/^$indent//mg; # un-indent
 	$self->parent->characters({Data => $paragraph});
     }
@@ -604,7 +611,9 @@ sub parselink {
 	if ($link =~ /\|/) {
 	    ($text, $link) = split (/\|/, $link, 2);
 	}
-        if ($link =~ /\A\w+:[^:\s]\S*\Z/) {
+        if ($link =~ /\A(\w+):[^:\s]\S*\Z/) {
+            my $scheme = $1;
+            die "Invalid URL scheme: $scheme" unless $scheme =~ /^(https?|ftp|mailto|news|nntp|snews)$/;
             return (undef, $text, $link, $text, 'url');
         }
 	my ($name, $section) = _parse_section ($link);
@@ -653,12 +662,213 @@ Pod::SAX - a SAX parser for Pod
 
 =head1 SYNOPSIS
 
+  my $h = XML::SAX::Writer->new();
   my $p = Pod::SAX->new( Handler => $h );
-  $p->parse_fh($fh);
+  $p->parse_uri('perlpodspec.pod');
 
 =head1 DESCRIPTION
 
-Parses POD and generates SAX events.
+Very simply, this module parses POD (or perl) files and turns the
+Plain Old Documentation into SAX events (which often you'll use
+to turn into XML, but there are other uses as well).
+
+The aim of this module is not round-tripping, so some things may
+be lost in the conversion. The aim is to be as standards compliant
+as possible, while giving you very simple access to the data.
+
+The main motivation for this module though was simple standards
+compliance - all the Pod parsers out there seem to have their own
+unique way of doing things, and so my aim was to unify that and
+allow the flexibility that SAX gives me at the same time.
+
+For an introduction to SAX, please read L<XML::SAX::Intro>.
+
+One very important point to note is that just because this is a
+SAX module it doesn't mandate that the results are XML. You could
+just as easily use this module to extract all filenames from
+a POD file, or extract custom =for/=begin sections. And because
+it uses standardised interfaces this is a lot simpler than working
+with any other POD parser out there, and the knowledge is
+transferrable.
+
+=head1 API
+
+=head2 new()
+
+To construct a parser simply call new(). It is customary to pass
+in the handler object that will receive the SAX events at this time,
+though you do not have to:
+
+  my $parser = Pod::SAX->new(Handler => $h);
+
+You can re-use this parser object multiple times. It's possible to change
+the handler at a later date using C<$parser->set_handler()>. This and many
+other API calls are documented in L<XML::SAX::Base>, which this module
+inherits from.
+
+=head2 parse()
+
+This method is an auto-detecting parser - it will try and figure out
+what you passed to it (a string, a file handle or a filename) and
+parse the data using the appropriate technique.
+
+=head2 parse_file(), parse_string(), parse_uri(), parse_fh()
+
+These are simply the non-detecting methods that parse() uses internally.
+Use these if you are paranoid about what you're parsing, and don't want
+the overhead of SAX trying to guess.
+
+=head1 XML Format
+
+The XML format is intended to be simple and map fairly closely to the
+source POD. The documentation here shows the POD marker and the
+tag that it maps to.
+
+=head2 =pod (or any other way to begin the document)
+
+  <pod>
+  <!-- Pod::SAX v0.14, using POD::Parser v1.13 -->
+
+The comment is automatically generated so that you can see what version
+of Pod::SAX was used in parsing this document. The closing C<< </pod> >>
+tag is generated when the end of the POD is reached.
+
+=head2 =head1 and =headN
+
+  <head1>Text here</head1>
+
+All head levels are supported.
+
+=head2 Paragraphs
+
+Plain paragraphs are represented with:
+
+  <para>text</para>
+
+=head2 Verbatim
+
+Verbatim sections (i.e. when you indent the text) are represented with:
+
+  <verbatim>text</verbatim>
+
+=head2 =over/=back
+
+Pod::SAX automatically detects whether a list is itemized or ordered (i.e.
+whether it should have bullet points or numbers), and so =over/=back are
+represented by:
+
+  <itemizedlist>  </itemizedlist>
+
+and
+
+  <orderedlist>   </orderedlist>
+
+respectively. The indent value (as in "=over 4") is saved in the
+C<indent_width> attribute, although for most purposes this can be ignored.
+
+=head2 =item
+
+For both bulleted and numbered lists, the =item tag always maps to:
+
+  <listitem>text</listitem>
+
+If a paragraph follows an =item tag (and occurs before any =back) then
+the paragraph is included immediately after the tag, so for example:
+
+  =item foo
+  
+  Some text about foo
+
+Maps to:
+
+  <listitem>foo
+    <para>Some text about foo</para>
+  </listitem>
+
+=head2 =begin foo
+
+And "=for foo" (the two are semantically equivalent in Pod)
+
+  <markup type="foo" ordinary_paragraph="0">text here</markup>
+
+If the markup section is meant for ordinary processing (see
+the perlpodspec section on "About Data Paragraphs and "=begin/=end"
+Regions"), which means the type name begins with a colon as in:
+
+  =begin :biblio
+
+Then the markup produced indicates that using:
+
+  <markup type="biblio" ordinary_paragraph="1"/>
+
+And the parser will expand all interior Pod commands as it should.
+
+B<Note>: There is I<no> special treatment of =begin html or
+=begin XML or any variant thereof. The contents of those markers
+will simply be treated as text, and it is up to the user of this
+module to parse that data as XML if they wish to do so.
+
+=head2 Sequences or Formatting Codes
+
+Sequences in POD consist of the following:
+
+  L<> - Links
+  E<> - Entities
+  I<> - Italics
+  B<> - Bold
+  C<> - Code
+  F<> - Filename
+  S<> - Non breaking space
+  X<> - Index marker
+  Z<> - Null
+
+Most sequences are simply converted to tags of the same name, case
+preserved:
+
+  <B>This is bold text</B> and also <I>some in italics</I>.
+
+Special treatment is given to the LE<lt>> EE<lt>> and SE<lt>> tags
+only.
+
+=head3 Links
+
+Links in Pod are... funky.
+
+Parsing links is really hard, so don't expect that I've got this right.
+Basically though you've got this mapping:
+
+  L<foo/bar>
+   => <link type="pod" page="foo" section="bar">foo</link>
+  
+  L<Some Foo|foo>
+   => <link type="pod" page="foo" section="">Some Foo</link>
+  
+  L<select(3)>
+   => <link type="man" page="select(3)" section="">select(3)</link>
+  
+  L<http://foo.com>
+   => <xlink href="http://foo.com">http://foo.com</xlink>
+
+And many variations thereof! Basically it should do the right thing
+
+=head3 Entities
+
+In POD an EE<lt>> marker defines an entity. In pod these are single
+characters only, and take either a text form, in which case they map
+to the standard HTML entities (e.g. ouml, Agrave etc), or a decimal
+number in which case they map to the unicode character at that code
+point.
+
+In Pod::SAX entities are always converted to unicode and never generate
+any tags or markers in the data stream so it will be as though the
+entity was never there.
+
+=head3 Non-Breaking Space
+
+Non breaking space is simply achieved by changing all space within
+the SE<lt>> section into the unicode codepoint 160 - the non-breaking
+space character. Normally this is enough to do the right thing, but
+if you need to you can detect this with a regexp.
 
 =head1 AUTHOR
 
@@ -666,7 +876,9 @@ Matt Sergeant, matt@sergeant.org. Copyright AxKit.com Ltd 2002
 
 =head1 BUGS
 
-No known bugs at this time.
+There may be bugs in the unicode handling on perl 5.8, because it's
+just really hard to get things right on 5.8 when dealing with
+unicode. :-)
 
 =head1 LICENSE
 

@@ -1,5 +1,12 @@
 Pod::SAX Changes
 
+0.14
+    - Lock list of supported URL schemes so you can't do javascript:
+      injection into POD documents
+    - Fixed verbatim to only remove smallest indent
+    - Made sure E<entity> entries are actually utf-8
+    - Added some real and useful documentation ;-)
+
 0.13
     - Fixed some list issues
 
