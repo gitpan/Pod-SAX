@@ -40,9 +40,11 @@ Some =item things to test
 
 =over 4
 
-=item 1 numbered list
+=item 1. numbered list
 
-=item 2 second number
+=item 2. second number
+
+=item 
 
 =back
 
@@ -75,6 +77,14 @@ Some =item things to test
 =back
 
 =item Back at the top level
+
+=back
+
+=head2 No list - just =over =back (indent)
+
+=over 2
+
+Something indented
 
 =back
 

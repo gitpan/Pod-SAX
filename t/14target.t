@@ -1,5 +1,5 @@
 use Test;
-BEGIN { plan tests => 7 }
+BEGIN { plan tests => 5 }
 use Pod::SAX;
 use XML::SAX::Writer;
 
@@ -16,8 +16,6 @@ ok($output);
 print "$output\n";
 ok($output, qr/<pod>.*<\/pod>/s, "Matches basic pod outline");
 ok($output, qr/<link/, "Contains a link");
-ok($output, qr/<link(\s+section=['"]['"]|\s+page=['"]page1['"]){2,2}/, "First link");
-ok($output, qr/<link(\s+section=['"]mysection['"]|\s+page=['"]page2['"]){2,2}/, "Section and page valid");
 ok($output, qr/<xlink\s+href=['"]http:\/\/axkit.org\/['"]/, "URL link");
 
 __DATA__

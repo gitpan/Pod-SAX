@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.9 2002/06/13 20:47:30 matt Exp $
+# $Id: SAX.pm,v 1.11 2002/06/14 14:13:55 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -47,6 +47,8 @@ use vars qw(@ISA %HTML_Escapes);
     'lt'        =>      '<',    #   left chevron, less-than
     'gt'        =>      '>',    #   right chevron, greater-than
     'quot'      =>      '"',    #   double quote
+    'sol'       =>      '/',    #   slash
+    'verbar'    =>      '|',    #   vertical bar
 
     "Aacute"    =>      "\xC1", #   capital A, acute accent
     "aacute"    =>      "\xE1", #   small a, acute accent
@@ -142,6 +144,9 @@ sub begin_pod {
     );
     $self->start_document({});
     $self->start_element(_element('pod'));
+    $self->characters({Data => "\n"});
+    $self->comment({Data => " Pod::SAX v$Pod::SAX::VERSION, using POD::Parser v$Pod::Parser::VERSION "});
+    $self->characters({Data => "\n"});
 }
 
 sub end_pod {
@@ -172,7 +177,10 @@ sub command {
     
     if ($command eq 'over') {
 	$self->{in_list}++;
-	$self->{open_lists}--;
+	$self->{open_lists}++;
+	my $indent = $paragraph + 0;
+	$indent ||= 4;
+	$self->{indent} = $indent;
 	return;
     }
     elsif ($command eq 'back') {
@@ -180,43 +188,50 @@ sub command {
 	return;
     }
     elsif ($command eq 'item') {
-	if ($self->{open_lists} < 0) {
+	if ($self->{open_lists}) {
 	    # determine list type, and open list tag
 	    my $list_type = 'itemizedlist';
 	    $paragraph =~ s|^\s* \*  \s+||x and $list_type = 'itemizedlist';
-	    $paragraph =~ s|^\s* \d+ \s+||x and $list_type = 'orderedlist';
+	    $paragraph =~ s|^\s* \d+\.? \s+||x and $list_type = 'orderedlist';
 	    $self->{list_type}[$self->{in_list}] = $list_type;
 	    $self->parent->characters({Data => (" " x $self->{in_list})});
-	    $self->parent->start_element(_element($list_type));
+	    my $el = _element($list_type);
+	    _add_attrib($el, indent_width => $self->{indent});
+	    $self->parent->start_element($el);
 	    $self->parent->characters({Data => "\n"});
-	    $self->{open_lists}++;
+	    $self->{open_lists}--;
 	}
 	else {
-	    $paragraph =~ s|^\s* \*  \s+||x;
-	    $paragraph =~ s|^\s* \d+ \s+||x;
+	    if ($self->{list_type}[$self->{in_list}] eq 'itemizedlist') {
+		$paragraph =~ s|^\s* \*  \s+||x;
+	    }
+	    elsif ($self->{list_type}[$self->{in_list}] eq 'orderedlist') {
+		$paragraph =~ s|^\s* \d+\.? \s+||x;
+	    }
 	}
 	$self->parent->characters({Data => " ".(" " x $self->{in_list})});
 	$command = 'listitem'; # prefer this ;-)
     }
-    elsif ($self->{in_list}) {
-	# command found while in_list - close all list tags
-	while ($self->{in_list}) {
-	    $self->close_list();
-	}
+    elsif ($self->{open_lists}) {
+	# non =item command while in =over section - must be indented
+	my $list_type = 'indent';
+	$self->{list_type}[$self->{in_list}] = $list_type;
+	$self->parent->characters({Data => (" " x $self->{in_list})});
+	my $el = _element($list_type);
+	_add_attrib($el, indent_width => $self->{indent});
+	$self->parent->start_element($el);
+	$self->parent->characters({Data => "\n"});
+	$self->{open_lists}--;
     }
     
     if ($command eq 'begin' || $command eq 'for') {
 	my $el = _element('markup');
-	$el->{Attributes} = {
-	    "{}type" => {
-		Name => "type",
-		  LocalName => "type",
-		  NamespaceURI => "",
-		  Prefix => "",
-		  Value => $paragraph,
-	    },
-	};
+	$paragraph =~ s/^(\S*)\s*//;
+	my $type = $1;
+	_add_attrib($el, type => $type);
 	$self->parent->start_element($el);
+	$self->parent->characters({Data => $paragraph});
+	$self->parent->end_element(_element('markup', 1)) if $command eq 'for';
 	return;
     }
     elsif ($command eq 'end') {
@@ -232,7 +247,19 @@ sub command {
 
 sub verbatim { 
     my ($self, $paragraph, $line_num) = @_;
-    ## Format verbatim paragraph; sample actions might be:
+    
+    if ($self->{open_lists}) {
+	# non =item command while in =over section - must be indented
+	my $list_type = 'indent';
+	$self->{list_type}[$self->{in_list}] = $list_type;
+	$self->parent->characters({Data => (" " x $self->{in_list})});
+	my $el = _element($list_type);
+	_add_attrib($el, indent_width => $self->{indent});
+	$self->parent->start_element($el);
+	$self->parent->characters({Data => "\n"});
+	$self->{open_lists}--;
+    }
+    
     if ($paragraph =~ s/^(\s*)//) {
         my $indent = $1;
 
@@ -249,7 +276,19 @@ sub verbatim {
 
 sub textblock { 
     my ($self, $paragraph, $line_num) = @_;
-    ## Translate/Format this block of text; sample actions might be:
+
+    if ($self->{open_lists}) {
+	# non =item command while in =over section - must be indented
+	my $list_type = 'indent';
+	$self->{list_type}[$self->{in_list}] = $list_type;
+	$self->parent->characters({Data => (" " x $self->{in_list})});
+	my $el = _element($list_type);
+	_add_attrib($el, indent_width => $self->{indent});
+	$self->parent->start_element($el);
+	$self->parent->characters({Data => "\n"});
+	$self->{open_lists}--;
+    }
+    
     $paragraph =~ s/^\s*//;
     $paragraph =~ s/\s*$//;
     
@@ -310,6 +349,8 @@ sub SplitTarget
 sub expand_seq {
     my ($self, $sequence) = @_;
     my $name = $sequence->cmd_name;
+    my ($filename, $line_number) = $sequence->file_line();
+    
     if ($name eq 'L') {
 	# link
 	
@@ -326,51 +367,33 @@ sub expand_seq {
 	
 	if ($type eq 'url') {
 	    my $start = _element("xlink");
-	    $start->{Attributes} = {
-		"{}href" => {
-		    Name => "href",
-		      LocalName => "href",
-		      NamespaceURI => "",
-		      Prefix => "",
-		      Value => $name,
-		},
-	    };
+	    _add_attrib($start, href => $name);
+	    
 	    $self->parent->start_element($start);
-	    $self->parent->characters({Data => $inferred}); # wish we could do better!
+	    $self->parse_text({ -expand_ptree => 'expand_ptree' }, $inferred, $line_number);
 	    $self->parent->end_element(_element('xlink', 1));
 	}
 	else {
 	    my $start = _element("link");
-	    $start->{Attributes} = {
-		"{}page" => {
-		    Name => "page",
-		      LocalName => "page",
-		      NamespaceURI => "",
-		      Prefix => "",
-		      Value => $name,
-		},
-		  "{}section" => {
-		      Name => "section",
-			LocalName => "section",
-			NamespaceURI => "",
-			Prefix => "",
-			Value => $section,
-		  },
-		  "{}type" => {
-		      Name => "type",
-			LocalName => "type",
-			NamespaceURI => "",
-			Prefix => "",
-			Value => $type,
-		  },
-	    };
+	    _add_attrib($start, page => $name);
+	    _add_attrib($start, section => $section);
+	    _add_attrib($start, type => $type);
+	    
 	    $self->parent->start_element($start);
-	    $self->parent->characters({Data => $inferred});
+            $self->parse_text({ -expand_ptree => 'expand_ptree' }, $inferred, $line_number);
 	    $self->parent->end_element(_element('link', 1));
 	}
     }
     elsif ($name eq 'E') {
 	my $text = join('', $sequence->parse_tree->children);
+	my $char;
+	if ($text =~ /^\d+$/) {
+	    $char = chr($text);
+	}
+	else {
+	    $char = $HTML_Escapes{$text};
+	}
+	    
 	$self->parent->characters({Data => $HTML_Escapes{$text}});
     }
     elsif ($name eq 'S') {
@@ -398,6 +421,19 @@ sub _element {
         NamespaceURI => '',
         Prefix => '',
     };
+}
+
+sub _add_attrib {
+    my ($el, $name, $value) = @_;
+    
+    $el->{Attributes}{"{}$name"} =
+      {
+	  Name => $name,
+	    LocalName => $name,
+	    Prefix => "",
+	    NamespaceURI => "",
+	    Value => $value,
+      };
 }
 
 # Next three functions copied from Pod::ParseLink

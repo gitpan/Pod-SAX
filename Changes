@@ -1,5 +1,8 @@
 Pod::SAX Changes
 
+0.05
+    - More changes to bring it closer to perlpodspec
+
 0.04
     - Fixed un-ending =item bug
 
