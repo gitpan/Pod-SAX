@@ -34,8 +34,18 @@ Here's a L<Some Text|page3/mysection>
 
 And a URL L<http://axkit.org/>
 
+A link with text L<Some Text|Link>
+
 =head2 Sub Title
 
 More
+
+=over
+
+=item Link in =item: L<link>
+
+=item Link with text in =item: L<Some text|LinkHere>
+
+=back
 
 =cut

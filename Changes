@@ -1,6 +1,9 @@
 Pod::SAX Changes
 
 0.06
+    - Fix for links in =item sections
+
+0.06
     - Verbatim parsing fixes (make sure they all go into one block)
     
 0.05

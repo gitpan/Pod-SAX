@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.12 2002/06/14 14:48:24 matt Exp $
+# $Id: SAX.pm,v 1.14 2002/06/14 16:53:06 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -184,8 +184,7 @@ sub command {
     if ($command eq 'over') {
 	$self->{in_list}++;
 	$self->{open_lists}++;
-	my $indent = $paragraph + 0;
-	$indent ||= 4;
+	my $indent = ($paragraph ? $paragraph + 0 : 4);
 	$self->{indent} = $indent;
 	return;
     }
@@ -245,8 +244,8 @@ sub command {
 	return;
     }
     
-    $self->parent->start_element(_element($command));    
-    $self->parse_text({ -expand_seq => 'expand_seq', -expand_text => 'expand_text' }, $paragraph, $line_num);
+    $self->parent->start_element(_element($command));
+    $self->parse_text({ -expand_ptree => 'expand_ptree' }, $paragraph, $line_num);
     $self->parent->end_element(_element($command, 1));
     $self->parent->characters({Data => "\n"});
 }
@@ -327,6 +326,7 @@ sub textblock {
 sub expand_ptree {
     my ($self, $ptree) = @_;
     foreach my $node ($ptree->children) {
+	# warn("Expand_ptree($node)\n");
 	if (ref($node)) {
 	    $self->expand_seq($node);
 	}
