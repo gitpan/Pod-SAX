@@ -1,0 +1,12 @@
+Changes
+MANIFEST
+MANIFEST.SKIP
+Makefile.PL
+README
+lib/Pod/SAX.pm
+t/00basic.t
+t/01parse_fh.t
+t/02parse_str.t
+t/03parse_file.t
+t/14target.t
+t/file.pod
