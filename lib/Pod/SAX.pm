@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.11 2002/06/14 14:13:55 matt Exp $
+# $Id: SAX.pm,v 1.12 2002/06/14 14:48:24 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -175,6 +175,12 @@ sub command {
     $paragraph =~ s/\s*$//;
     $paragraph =~ s/^\s*//;
     
+    if ($self->{in_verbatim}) {
+	$self->parent->end_element(_element('verbatim', 1));
+	$self->parent->characters({Data => "\n"});
+	$self->{in_verbatim} = 0;
+    }
+    
     if ($command eq 'over') {
 	$self->{in_list}++;
 	$self->{open_lists}++;
@@ -248,6 +254,9 @@ sub command {
 sub verbatim { 
     my ($self, $paragraph, $line_num) = @_;
     
+    my $text = $paragraph;
+    $text =~ s/\n\z//;
+    
     if ($self->{open_lists}) {
 	# non =item command while in =over section - must be indented
 	my $list_type = 'indent';
@@ -260,18 +269,29 @@ sub verbatim {
 	$self->{open_lists}--;
     }
     
+    my $last_verbatim = 0;
+    if ($text =~ /\n\z/) {
+	$last_verbatim = 1;
+    }
+    
+    $self->parent->start_element(_element('verbatim')) unless $self->{in_verbatim};
+    $self->parent->characters({Data => "\n\n"}) if $self->{in_verbatim};
+    $self->{in_verbatim} = 1;
+    
     if ($paragraph =~ s/^(\s*)//) {
         my $indent = $1;
 
         $paragraph =~ s/\s*$//;
         return unless length $paragraph;
         $paragraph =~ s/^$indent//mg; # un-indent
-	$self->parent->start_element(_element('verbatim'));
 	$self->parent->characters({Data => $paragraph});
+    }
+    
+    if ($last_verbatim) {
 	$self->parent->end_element(_element('verbatim', 1));
 	$self->parent->characters({Data => "\n"});
+	$self->{in_verbatim} = 0;
     }
-
 }
 
 sub textblock { 
@@ -288,6 +308,12 @@ sub textblock {
 	$self->parent->characters({Data => "\n"});
 	$self->{open_lists}--;
     }
+    if ($self->{in_verbatim}) {
+	$self->parent->end_element(_element('verbatim', 1));
+	$self->parent->characters({Data => "\n"});
+	$self->{in_verbatim} = 0;
+    }
+	
     
     $paragraph =~ s/^\s*//;
     $paragraph =~ s/\s*$//;

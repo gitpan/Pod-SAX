@@ -1,5 +1,8 @@
 Pod::SAX Changes
 
+0.06
+    - Verbatim parsing fixes (make sure they all go into one block)
+    
 0.05
     - More changes to bring it closer to perlpodspec
 
