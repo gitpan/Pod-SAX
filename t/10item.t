@@ -78,5 +78,12 @@ Some =item things to test
 
 =back
 
+=head2 List without ending
+
+=over 4
+
+=item Foo
+
+Blah Blah
 
 =cut

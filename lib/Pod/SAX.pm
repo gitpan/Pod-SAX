@@ -1,8 +1,8 @@
-# $Id: SAX.pm,v 1.7 2002/06/13 13:56:25 matt Exp $
+# $Id: SAX.pm,v 1.9 2002/06/13 20:47:30 matt Exp $
 
 package Pod::SAX;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 use XML::SAX::Base;
 @ISA = qw(XML::SAX::Base);
 
@@ -145,9 +145,23 @@ sub begin_pod {
 }
 
 sub end_pod {
-    my $self = shift->parent;
-    $self->end_element(_element('pod', 1));
-    $self->end_document({});
+    my $self = shift;
+    while ($self->{in_list}) {
+	$self->close_list();
+    }
+    $self->parent->end_element(_element('pod', 1));
+    $self->parent->end_document({});
+}
+
+sub close_list {
+    my $self = shift;
+    my $list_type = $self->{list_type}[$self->{in_list}];
+    $self->{list_type}[$self->{in_list}] = undef;
+    $self->parent->characters({Data => (" " x $self->{in_list})});
+    $self->{in_list}--;
+    $self->parent->end_element(_element($list_type, 1));
+    $self->parent->characters({Data => "\n"});
+    return;
 }
 
 sub command { 
@@ -162,12 +176,7 @@ sub command {
 	return;
     }
     elsif ($command eq 'back') {
-	my $list_type = $self->{list_type}[$self->{in_list}];
-	$self->{list_type}[$self->{in_list}] = undef;
-	$self->parent->characters({Data => (" " x $self->{in_list})});
-	$self->{in_list}--;
-	$self->parent->end_element(_element($list_type, 1));
-	$self->parent->characters({Data => "\n"});
+	$self->close_list();
 	return;
     }
     elsif ($command eq 'item') {
@@ -189,7 +198,14 @@ sub command {
 	$self->parent->characters({Data => " ".(" " x $self->{in_list})});
 	$command = 'listitem'; # prefer this ;-)
     }
-    elsif ($command eq 'begin' || $command eq 'for') {
+    elsif ($self->{in_list}) {
+	# command found while in_list - close all list tags
+	while ($self->{in_list}) {
+	    $self->close_list();
+	}
+    }
+    
+    if ($command eq 'begin' || $command eq 'for') {
 	my $el = _element('markup');
 	$el->{Attributes} = {
 	    "{}type" => {

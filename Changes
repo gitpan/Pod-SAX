@@ -1,5 +1,8 @@
 Pod::SAX Changes
 
+0.04
+    - Fixed un-ending =item bug
+
 0.03
     - Complete re-write to use Pod::Parser
 
